@@ -136,7 +136,7 @@ function CodePane({
                   <span
                     className={`flex w-4 shrink-0 items-center justify-center py-0.5 transition-opacity duration-500 ${
                       displayKind === "fail" ? "text-red-700" : "text-green-700"
-                    } ${markKind ? "opacity-100" : "opacity-0"}`}
+                    } ${displayKind ? "opacity-100" : "opacity-0"}`}
                     aria-hidden="true"
                   >
                     <svg
