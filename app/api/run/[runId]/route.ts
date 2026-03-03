@@ -7,7 +7,12 @@ type RunRouteContext = {
 
 export async function GET(_request: Request, { params }: RunRouteContext) {
   const { runId } = await params;
-  const run = await getRun(runId);
+  let run;
+  try {
+    run = await getRun(runId);
+  } catch {
+    return NextResponse.json({ error: "Run not found" }, { status: 404 });
+  }
 
   const [status, workflowName, createdAt, startedAt, completedAt] =
     await Promise.all([

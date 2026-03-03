@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getRun } from "workflow/api";
 
 type ReadableRouteContext = {
@@ -10,7 +10,12 @@ export async function GET(
   { params }: ReadableRouteContext
 ) {
   const { runId } = await params;
-  const run = await getRun(runId);
+  let run;
+  try {
+    run = await getRun(runId);
+  } catch {
+    return NextResponse.json({ error: "Run not found" }, { status: 404 });
+  }
   const readable = run.getReadable();
 
   const encoder = new TextEncoder();

@@ -23,6 +23,17 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function safeWrite(
+  writer: WritableStreamDefaultWriter<RetryEvent>,
+  event: RetryEvent
+): Promise<void> {
+  try {
+    await writer.write(event);
+  } catch {
+    // Best-effort streaming; step logic should continue on stream errors.
+  }
+}
+
 export async function retryBackoffContactSync(
   contactId: string,
   maxAttempts: number = 5,
@@ -74,12 +85,12 @@ async function syncContactToCrm(
   const writer = getWritable<RetryEvent>().getWriter();
 
   try {
-    await writer.write({ type: "attempt_start", attempt, contactId });
+    await safeWrite(writer, { type: "attempt_start", attempt, contactId });
     await delay(STEP_DELAY_MS); // Demo: simulate network latency
 
     if (attempt <= failuresBeforeSuccess) {
       const error = "CRM API returned HTTP 503 Service Unavailable";
-      await writer.write({
+      await safeWrite(writer, {
         type: "attempt_fail",
         attempt,
         error,
@@ -88,8 +99,10 @@ async function syncContactToCrm(
       throw new FatalError(error);
     }
 
-    await writer.write({ type: "attempt_success", attempt, contactId });
+    await safeWrite(writer, { type: "attempt_success", attempt, contactId });
   } finally {
     writer.releaseLock();
   }
 }
+
+syncContactToCrm.maxRetries = 0;
