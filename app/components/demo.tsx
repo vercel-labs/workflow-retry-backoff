@@ -392,6 +392,7 @@ export function RetryBackoffDemo({
               ...event,
               receivedAtMs: Date.now(),
             };
+            if (signal.aborted) return;
             setEvents((prev) => [...prev, timestamped]);
           } catch {
             /* ignore parse errors */
@@ -407,6 +408,7 @@ export function RetryBackoffDemo({
         if (dataLine) {
           try {
             const event = JSON.parse(dataLine.slice(6)) as RetryEvent;
+            if (signal.aborted) return;
             setEvents((prev) => [
               ...prev,
               { ...event, receivedAtMs: Date.now() },
@@ -417,6 +419,7 @@ export function RetryBackoffDemo({
         }
       }
 
+      if (signal.aborted) return;
       setStreamEnded(true);
     },
     []
@@ -482,6 +485,7 @@ export function RetryBackoffDemo({
   const handleReset = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
+    startedAtRef.current = 0;
     setLifecycle("idle");
     setRunId(null);
     setEvents([]);
